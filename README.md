@@ -1,43 +1,34 @@
-# GISBot · WebGIS + Trợ lý AI tiếng Việt
+# GISBot · WebGIS + AI tiếng Việt
 
-Nền tảng GISBot độc lập: bản đồ OpenStreetMap, địa hình OpenTopoMap, tra cứu Nominatim, định vị theo quyền người dùng, điểm tự chọn, đo khoảng cách, nạp/xuất GeoJSON, lệnh tiếng Việt, TTS/STT trình duyệt, AI qua OpenRouter, danh sách thiết bị lưu cục bộ, metadata thượng nguồn trực tiếp từ GitHub.
+GISBot kết hợp bản đồ OpenStreetMap, OpenTopoMap, tra cứu địa danh Nominatim, đo khoảng cách, nạp/xuất GeoJSON, giọng nói trình duyệt và API AI OpenRouter. GISBot tham khảo tài liệu giao thức trong hệ sinh thái VietBot; đây là dự án độc lập, không đại diện VietBot.
 
-**Không phải giả lập:** các chức năng bản đồ và GeoJSON chạy thực tế, API Cloudflare gửi yêu cầu tới dịch vụ bên ngoài khi được cấu hình. **Chưa tích hợp:** xác thực VietBot, cấp mã OTA, broker MQTT, Python STT/TTS streaming, tài khoản và cơ sở dữ liệu đa người dùng. Các thao tác này phải sử dụng server có quyền riêng, không thể chỉ chạy trên Pages tĩnh. Danh sách thiết bị trong GISBot được gắn nhãn lưu cục bộ, không giả lập trạng thái online.
+## Triển khai lên Cloudflare Workers — phiên bản 1.1
 
-## Cấu trúc
+**Phù hợp với dịch vụ GISBot hiện đã tạo trong Cloudflare Workers Builds.** Mã nguồn dùng `src/worker.js` làm Worker entry, phục vụ `public/` thông qua Assets binding và tái sử dụng các endpoint `functions/api/`.
 
-- `public/index.html`, `public/styles.css`, `public/app.js`: giao diện thích ứng desktop và mobile.
-- `functions/api/health.js`: trạng thái hoạt động, không lộ secret.
-- `functions/api/geocode.js`: địa danh Nominatim, giới hạn truy vấn và cache.
-- `functions/api/sources.js`: dữ liệu repository thực từ GitHub API.
-- `functions/api/chat.js`: proxy OpenRouter dạng BYOK hoặc secret có xác thực.
-- `docs/TICH_HOP.md`: tài liệu kiến trúc tham khảo VietBot và điều kiện license.
+Trong Cloudflare → Workers & Pages → gisbot → Settings → Build:
 
-## Cloudflare Pages
+- Git repository: `xulytiengviet/gisbot`; Production branch: `main`; Root directory: gốc repo.
+- Build command: `npm run build`.
+- Deploy command: `npx wrangler deploy`.
+- Sau deployment, xem URL được Cloudflare cấp tại Domains & Routes rồi kiểm tra `/api/health`.
 
-1. Truy cập **Workers & Pages → Create → Pages → Connect to Git** trong [Cloudflare Dashboard](https://dash.cloudflare.com/), cho phép truy cập `xulytiengviet/gisbot`.
-2. **Project name:** `gisbot` nếu còn khả dụng; **Production branch:** `main`; **Framework preset:** None; **Build command:** để trống; **Output directory:** `public`; **Root directory:** `/`.
-3. Cloudflare Pages sẽ nhận `functions/` ở gốc repo và triển khai các endpoint `/api/*`.
-4. Kiểm tra `/api/health`, `/api/sources`, `/api/geocode?q=Vinh%20Long`; nếu API chưa chạy, kiểm tra đang tạo **Pages**, không phải Workers với cấu hình build riêng.
-5. Mỗi người có thể nhập OpenRouter API key cá nhân trong tab **Cài đặt**; khóa chỉ tồn tại trong bộ nhớ tab, không được ghi vào Git hay localStorage. Cách khác: tạo cả hai secret đã mã hóa `OPENROUTER_API_KEY` và `GISBOT_ACCESS_TOKEN` trong Cloudflare Settings → Variables and Secrets. Người dùng nhập mã truy cập trong Cài đặt GISBot. Không mở khóa server chung khi chưa có mã truy cập.
-6. Thiết lập WAF/rate limiting cho `/api/chat` và `/api/geocode` khi triển khai công khai. Nominatim miễn phí chỉ phù hợp với mức sử dụng thấp, phải tuân thủ chính sách và không làm autocomplete.
-7. URL sẽ được Cloudflare cấp ở dạng `https://<tên-project>.pages.dev`; tạo repo **không** tự tạo Cloudflare project hay đặt tên miền cho bạn.
+Chi tiết lỗi và cách khắc phục: [docs/FIX_WORKERS_BUILD.md](docs/FIX_WORKERS_BUILD.md).
 
-### Chạy local
+## Kiểm thử và chạy local
 
-```bash
-npm test
-npm run check
-npx wrangler pages dev public
+```sh
+npm install
+npm run build
+npm run dev
 ```
 
-Cần kết nối Internet để tải thư viện Leaflet, OSM/OpenTopoMap tiles và sử dụng GitHub/Nominatim/OpenRouter. Nhận dạng giọng nói Web Speech API có thể xử lý từ xa qua dịch vụ của nhà cung cấp trình duyệt.
+**Mã nguồn:** `public/` là WebGIS frontend; `functions/api/` chứa các module API được cả Workers và Pages gọi; `src/worker.js` là entry Workers; `tests/` kiểm tra API và tuyến Worker; `wrangler.toml` là cấu hình Workers.
 
-## Quyền riêng tư và nguồn
+**Chưa triển khai trong GISBot:** đăng nhập VietBot, ghép nối OTA, broker MQTT, Opus/STT/TTS streaming, dữ liệu thiết bị trực tiếp. Các tính năng đó cần server được cấp quyền. Danh sách thiết bị đang lưu cục bộ; không hiển thị giả trạng thái trực tuyến.
 
-- GeoJSON chỉ xử lý trong trình duyệt; không tự upload khi chọn file. Thiết bị lưu trong `localStorage`; không lưu mật khẩu MQTT, mã OTA hay khóa OpenRouter.
-- Khi hỏi AI, nội dung câu hỏi và tâm bản đồ (không phải vị trí địa lý thực của người dùng) được gửi tới OpenRouter; chỉ thực hiện khi người dùng bấm Gửi.
-- Bản đồ © OpenStreetMap contributors; lớp địa hình © OpenTopoMap.
-- Phần GISBot tự viết theo MIT. `vietbot_client` và `custom_components` dùng MIT; `vietbot_offline` GPLv3 chỉ được tham khảo/giữ riêng. `vietbot_server` beta chưa thấy LICENSE ở gốc nhánh đã kiểm tra: không sao chép trực tiếp code. Xem [docs/TICH_HOP.md](docs/TICH_HOP.md).
+**Bảo mật:** không đưa MQTT credentials, OpenRouter key, mã OTA lên GitHub. Có thể nhập OpenRouter API key riêng trong bộ nhớ tab. Nếu cấu hình AI chung, đặt `OPENROUTER_API_KEY` và `GISBOT_ACCESS_TOKEN` tại Worker Runtime Variables & Secrets, thêm Rate Limiting/WAF cho `/api/chat`.
 
-GISBot là dự án độc lập tham khảo hệ sinh thái phần mềm mở VietBot, không đại diện trang VietBot gốc.
+**Giấy phép:** GISBot MIT; `vietbot_client` và `custom_components` MIT; `vietbot_offline` GPLv3 chỉ được tham khảo và triển khai riêng; không sao chép code `vietbot_server` khi chưa xác minh license. Xem [docs/TICH_HOP.md](docs/TICH_HOP.md).
+
+© 2026 GISBot · Bản đồ © OpenStreetMap contributors.

@@ -1,1 +1,20 @@
-{"name":"gisbot","version":"1.0.0","private":true,"type":"module","scripts":{"test":"node --test","check":"node --check public/app.js && node --check functions/api/chat.js && node --check functions/api/geocode.js && node --check functions/api/sources.js","dev":"npx wrangler pages dev public"}}
+{
+  "name": "gisbot",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "GISBot WebGIS + AI on Cloudflare Workers with static assets",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node --check public/app.js && node --check src/worker.js && node --check functions/api/chat.js && node --check functions/api/geocode.js && node --check functions/api/health.js && node --check functions/api/sources.js",
+    "test": "node --test",
+    "build": "npm run check && npm test",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.20.0"
+  }
+}
