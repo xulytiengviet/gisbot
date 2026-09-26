@@ -1,0 +1,1 @@
+{"name":"gisbot","version":"1.0.0","private":true,"type":"module","scripts":{"test":"node --test","check":"node --check public/app.js && node --check functions/api/chat.js && node --check functions/api/geocode.js && node --check functions/api/sources.js","dev":"npx wrangler pages dev public"}}
