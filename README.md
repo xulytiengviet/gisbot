@@ -1,34 +1,19 @@
-# GISBot · WebGIS + AI tiếng Việt
+# GISBot — Cloudflare Pages branch
 
-GISBot kết hợp bản đồ OpenStreetMap, OpenTopoMap, tra cứu địa danh Nominatim, đo khoảng cách, nạp/xuất GeoJSON, giọng nói trình duyệt và API AI OpenRouter. GISBot tham khảo tài liệu giao thức trong hệ sinh thái VietBot; đây là dự án độc lập, không đại diện VietBot.
+**Đây là nhánh `pages`, dành riêng cho Cloudflare Pages và URL `<project>.pages.dev`.** Worker service hiện có tiếp tục deploy từ nhánh `main`; không thay đổi production Worker.
 
-## Triển khai lên Cloudflare Workers — phiên bản 1.1
+Để sử dụng địa chỉ `https://gisbot.pages.dev`, tạo hoặc cấu hình Pages project trong tài khoản Cloudflare của bạn, chọn repository `xulytiengviet/gisbot`, production branch **`pages`**, build command `npm run build` và build output directory `public`. Chỉ có Cloudflare Dashboard mới xác nhận được rằng địa chỉ `gisbot.pages.dev` đã được cấp cho project và triển khai thành công.
 
-**Phù hợp với dịch vụ GISBot hiện đã tạo trong Cloudflare Workers Builds.** Mã nguồn dùng `src/worker.js` làm Worker entry, phục vụ `public/` thông qua Assets binding và tái sử dụng các endpoint `functions/api/`.
+Mã nguồn WebGIS nằm trong `public/`. Cloudflare Pages Functions tự phục vụ `/api/health`, `/api/sources`, `/api/geocode` và `/api/chat` từ `functions/api/`.
 
-Trong Cloudflare → Workers & Pages → gisbot → Settings → Build:
+Xem [hướng dẫn khắc phục gisbot.pages.dev](docs/PAGES_DEPLOY.md).
 
-- Git repository: `xulytiengviet/gisbot`; Production branch: `main`; Root directory: gốc repo.
-- Build command: `npm run build`.
-- Deploy command: `npx wrangler deploy`.
-- Sau deployment, xem URL được Cloudflare cấp tại Domains & Routes rồi kiểm tra `/api/health`.
+Lệnh local:
 
-Chi tiết lỗi và cách khắc phục: [docs/FIX_WORKERS_BUILD.md](docs/FIX_WORKERS_BUILD.md).
-
-## Kiểm thử và chạy local
-
-```sh
+```bash
 npm install
 npm run build
 npm run dev
 ```
 
-**Mã nguồn:** `public/` là WebGIS frontend; `functions/api/` chứa các module API được cả Workers và Pages gọi; `src/worker.js` là entry Workers; `tests/` kiểm tra API và tuyến Worker; `wrangler.toml` là cấu hình Workers.
-
-**Chưa triển khai trong GISBot:** đăng nhập VietBot, ghép nối OTA, broker MQTT, Opus/STT/TTS streaming, dữ liệu thiết bị trực tiếp. Các tính năng đó cần server được cấp quyền. Danh sách thiết bị đang lưu cục bộ; không hiển thị giả trạng thái trực tuyến.
-
-**Bảo mật:** không đưa MQTT credentials, OpenRouter key, mã OTA lên GitHub. Có thể nhập OpenRouter API key riêng trong bộ nhớ tab. Nếu cấu hình AI chung, đặt `OPENROUTER_API_KEY` và `GISBOT_ACCESS_TOKEN` tại Worker Runtime Variables & Secrets, thêm Rate Limiting/WAF cho `/api/chat`.
-
-**Giấy phép:** GISBot MIT; `vietbot_client` và `custom_components` MIT; `vietbot_offline` GPLv3 chỉ được tham khảo và triển khai riêng; không sao chép code `vietbot_server` khi chưa xác minh license. Xem [docs/TICH_HOP.md](docs/TICH_HOP.md).
-
-© 2026 GISBot · Bản đồ © OpenStreetMap contributors.
+Không commit secret vào GitHub. Giữ tách biệt credential của Workers và Pages. © 2026 GISBot · OpenStreetMap contributors.

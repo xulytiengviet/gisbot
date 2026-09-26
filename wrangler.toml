@@ -1,12 +1,6 @@
-# GISBot — production deployment to the EXISTING Cloudflare Workers service.
+# GISBot — Cloudflare Pages production branch ("pages").
+# The separate "main" branch is reserved for Cloudflare Workers.
 name = "gisbot"
-main = "./src/worker.js"
+pages_build_output_dir = "./public"
 compatibility_date = "2026-09-26"
-workers_dev = true
 send_metrics = false
-
-[assets]
-directory = "./public"
-binding = "ASSETS"
-run_worker_first = true
-not_found_handling = "single-page-application"

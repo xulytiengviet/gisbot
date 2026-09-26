@@ -1,9 +1,9 @@
 name: GISBot CI
 on:
   push:
-    branches: [main]
+    branches: [main, pages]
   pull_request:
-    branches: [main]
+    branches: [main, pages]
 permissions:
   contents: read
 jobs:
